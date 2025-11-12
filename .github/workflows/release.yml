@@ -108,11 +108,17 @@ jobs:
           echo "✅ Tag $NEW_VERSION created and pushed"
 
       - name: Build package
+        id: build_info
         run: |
           # setuptools-scm usa el tag para la versión
           python -m build
           echo "✅ Package built"
           ls -lh dist/
+
+          # Extraer la versión real del nombre del archivo .whl construido
+          BUILT_VERSION=$(ls dist/*.whl | head -n 1 | grep -oP 'alpyro_saludador-\K[^-]+' || echo "unknown")
+          echo "built_version=$BUILT_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Built version: $BUILT_VERSION"
 
       - name: Publish to TestPyPI
         env:
@@ -126,19 +132,59 @@ jobs:
           echo "pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador"
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.new_version.outputs.new_version }}
-          release_name: Release ${{ steps.new_version.outputs.new_version }}
+          name: Release ${{ steps.new_version.outputs.new_version }}
           body: |
             ## Changes
             ${{ github.event.head_commit.message }}
 
             ## Installation
             ```bash
-            pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.new_version.outputs.new_version }}
+            pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.build_info.outputs.built_version }}
             ```
           draft: false
           prerelease: false
+
+      - name: Create summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 🎉 Release Published
+
+          **Version:** \`${{ steps.build_info.outputs.built_version }}\`
+
+          **Tag:** \`${{ steps.new_version.outputs.new_version }}\`
+
+          **Version Bump:** \`${{ steps.version_bump.outputs.version_bump }}\`
+
+          **Commit Message:**
+          > ${{ github.event.head_commit.message }}
+
+          ---
+
+          ### 📦 Installation
+          \`\`\`bash
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.build_info.outputs.built_version }}
+          \`\`\`
+
+          ### 🔗 Links
+          - [GitHub Release](${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.new_version.outputs.new_version }})
+          - [TestPyPI Package](https://test.pypi.org/project/alpyro-saludador/${{ steps.build_info.outputs.built_version }}/)
+
+          ### 🧪 Testing
+          \`\`\`bash
+          # Crear entorno virtual
+          python -m venv test-env
+          source test-env/bin/activate
+
+          # Instalar release
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.build_info.outputs.built_version }}
+
+          # Probar
+          saludar
+          saludar "Test User" --idioma en
+          saludar João --idioma pt
+          \`\`\`
+          EOF
