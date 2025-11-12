@@ -35,6 +35,8 @@ dev = [
     "pytest-cov>=4.0",
     "black>=23.0",
     "ruff>=0.1.0",
+    "build>=1.0.0",
+    "twine>=4.0.0",
 ]
 
 # Definición de comandos CLI
@@ -75,3 +77,7 @@ exclude_lines = [
 [tool.setuptools_scm]
 # Escribe la versión en un archivo _version.py para acceso en runtime
 write_to = "src/alpyro_saludador/_version.py"
+# Esquema para versiones .dev posteriores al último release
+version_scheme = "post-release"
+# No incluir identificadores locales en versiones publicadas
+local_scheme = "no-local-version"

@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+dist-test/
 downloads/
 eggs/
 .eggs/
@@ -145,3 +146,6 @@ cython_debug/
 *.swo
 *~
 .DS_Store
+
+
+gestion-librerias.md
