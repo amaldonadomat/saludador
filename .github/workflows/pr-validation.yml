@@ -73,9 +73,19 @@ jobs:
         run: |
           pytest --cov=alpyro_saludador --cov-report=term-missing --cov-report=xml
 
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+      - name: Display coverage summary
         if: always()
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+        run: |
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Extraer el porcentaje de cobertura del XML
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(f\"{float(root.attrib['line-rate']) * 100:.2f}\")")
+
+          echo "**Total Coverage:** ${COVERAGE}% ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Detailed Coverage by File" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pytest --cov=alpyro_saludador --cov-report=term-missing | grep -A 100 "Name" >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
