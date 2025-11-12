@@ -5,7 +5,7 @@ Un paquete de ejemplo para aprender a crear paquetes Python con las mejores prá
 ## Características
 
 - Comando CLI simple para saludar
-- Soporte para múltiples idiomas (español, inglés, francés)
+- Soporte para múltiples idiomas (español, inglés, francés, italiano)
 - Estadísticas de texto
 - Estructura moderna con `pyproject.toml`
 - Tests incluidos
@@ -51,6 +51,9 @@ saludar María --idioma en
 
 # Saludo en francés con hora
 saludar Pedro --idioma fr --incluir-hora
+
+# Saludo en italiano
+saludar Luigi --idioma it
 
 # Ver estadísticas del saludo
 saludar "Mundo" --stats
