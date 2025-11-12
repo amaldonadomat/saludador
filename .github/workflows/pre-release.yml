@@ -49,7 +49,7 @@ jobs:
 
       - name: Build package
         run: |
-          # setuptools-scm genera versión .dev<distance>+g<hash> automáticamente
+          # setuptools-scm genera versión .post<distance> automáticamente
           python -m build
           echo "✅ Package built"
           ls -lh dist/
