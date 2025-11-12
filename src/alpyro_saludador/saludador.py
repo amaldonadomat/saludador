@@ -34,7 +34,7 @@ def saludar_personalizado(
 
     Args:
         nombre: El nombre a saludar.
-        idioma: Código del idioma ('es', 'en', 'fr', 'it', 'pt'). Por defecto 'es'.
+        idioma: Código del idioma ('es', 'en', 'fr', 'it', 'pt', 'pl'). Por defecto 'es'.
         incluir_hora: Si se debe incluir la hora actual. Por defecto False.
 
     Returns:
@@ -49,6 +49,8 @@ def saludar_personalizado(
         'Ciao, Luigi! Come stai?'
         >>> saludar_personalizado("João", idioma="pt")
         'Olá, João! Como você está?'
+        >>> saludar_personalizado("Anna", idioma="pl")
+        'Cześć, Anna! Jak się masz?'
     """
     saludos = {
         "es": f"¡Hola, {nombre}! ¿Cómo estás?",
@@ -56,6 +58,7 @@ def saludar_personalizado(
         "fr": f"Bonjour, {nombre}! Comment allez-vous?",
         "it": f"Ciao, {nombre}! Come stai?",
         "pt": f"Olá, {nombre}! Como você está?",
+        "pl": f"Cześć, {nombre}! Jak się masz?",
     }
 
     saludo = saludos.get(idioma, saludos["es"])

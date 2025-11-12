@@ -48,6 +48,11 @@ class TestSaludarPersonalizado:
         resultado = saludar_personalizado("João", idioma="pt")
         assert resultado == "Olá, João! Como você está?"
 
+    def test_saludo_polaco(self):
+        """Test de saludo en polaco."""
+        resultado = saludar_personalizado("Anna", idioma="pl")
+        assert resultado == "Cześć, Anna! Jak się masz?"
+
     def test_saludo_idioma_invalido(self):
         """Test de saludo con idioma inválido (debe usar español por defecto)."""
         resultado = saludar_personalizado("Ana", idioma="de")
@@ -140,6 +145,7 @@ def test_saludar_parametrizado(nombre, esperado):
     ("fr", "Bonjour"),
     ("it", "Ciao"),
     ("pt", "Olá"),
+    ("pl", "Cześć"),
 ])
 def test_idiomas_parametrizado(idioma, palabra_clave):
     """Test parametrizado para diferentes idiomas."""
