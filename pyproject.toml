@@ -86,5 +86,5 @@ fail_under = 85
 write_to = "src/alpyro_saludador/_version.py"
 # Esquema para versiones .dev posteriores al último release
 version_scheme = "post-release"
-# No incluir identificadores locales en versiones publicadas
+# No incluir identificadores locales en versiones publicadas (limitacion pypi)
 local_scheme = "no-local-version"
