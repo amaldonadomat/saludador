@@ -133,6 +133,7 @@ def test_saludar_parametrizado(nombre, esperado):
     ("es", "Hola"),
     ("en", "Hello"),
     ("fr", "Bonjour"),
+    ("it", "Ciao"),
 ])
 def test_idiomas_parametrizado(idioma, palabra_clave):
     """Test parametrizado para diferentes idiomas."""

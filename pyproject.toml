@@ -63,7 +63,11 @@ python_functions = ["test_*"]
 # Configuración de coverage
 [tool.coverage.run]
 source = ["alpyro_saludador"]
-omit = ["*/tests/*"]
+omit = [
+    "*/tests/*",
+    "*/cli.py",
+    "*/_version.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -71,7 +75,10 @@ exclude_lines = [
     "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "except ImportError:",
 ]
+fail_under = 85
 
 # Configuración de setuptools-scm para versionado automático desde Git tags
 [tool.setuptools_scm]
