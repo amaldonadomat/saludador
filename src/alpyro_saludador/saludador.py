@@ -2,7 +2,6 @@
 Módulo principal con funciones de saludo.
 """
 
-from typing import Optional
 from datetime import datetime
 
 
