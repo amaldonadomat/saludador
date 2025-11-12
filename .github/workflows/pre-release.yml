@@ -28,27 +28,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
-      - name: Get version info
-        id: version_info
-        run: |
-          # setuptools-scm genera automáticamente la versión .dev
-          pip install setuptools-scm
-          VERSION=$(python -c "from setuptools_scm import get_version; print(get_version())")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "✅ Pre-release version: $VERSION"
-
-          # Verificar que sea una versión .dev
-          if [[ ! "$VERSION" =~ \.dev ]]; then
-            echo "⚠️  Warning: Not on a development commit. Version is: $VERSION"
-            echo "This should be run from a commit without a tag to generate .dev version"
-          fi
-
       - name: Build package
+        id: build_info
         run: |
-          # setuptools-scm genera versión .dev<distance>+g<hash> automáticamente
+          # setuptools-scm genera versión .post<distance> automáticamente
           python -m build
           echo "✅ Package built"
           ls -lh dist/
+
+          # Extraer la versión real del nombre del archivo .whl construido
+          BUILT_VERSION=$(ls dist/*.whl | head -n 1 | grep -oP 'alpyro_saludador-\K[^-]+' || echo "unknown")
+          echo "built_version=$BUILT_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Built version: $BUILT_VERSION"
 
       - name: Publish to TestPyPI
         env:
@@ -58,23 +49,23 @@ jobs:
           twine upload --repository testpypi dist/*
           echo "✅ Pre-release package published to TestPyPI"
           echo ""
-          echo "Version: ${{ steps.version_info.outputs.version }}"
+          echo "Version: ${{ steps.build_info.outputs.built_version }}"
           echo ""
           echo "Install with:"
-          echo "pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.version_info.outputs.version }}"
+          echo "pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.build_info.outputs.built_version }}"
 
       - name: Create summary
         run: |
           cat >> $GITHUB_STEP_SUMMARY << EOF
           ## 🚀 Pre-Release Published
 
-          **Version:** \`${{ steps.version_info.outputs.version }}\`
+          **Version:** \`${{ steps.build_info.outputs.built_version }}\`
 
           **Description:** ${{ github.event.inputs.description }}
 
           ### Installation
           \`\`\`bash
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.version_info.outputs.version }}
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.build_info.outputs.built_version }}
           \`\`\`
 
           ### Testing
@@ -84,7 +75,7 @@ jobs:
           source test-env/bin/activate
 
           # Instalar pre-release
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.version_info.outputs.version }}
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple alpyro-saludador==${{ steps.build_info.outputs.built_version }}
 
           # Probar
           saludar

@@ -17,6 +17,10 @@ jobs:
       - name: Check PR title format
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
+
+          echo "## 📝 PR Title Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [[ ! "$PR_TITLE" =~ ^\[(patch|minor|major)\] ]]; then
             echo "❌ Error: PR title must start with [patch], [minor], or [major]"
             echo "Current title: $PR_TITLE"
@@ -25,9 +29,31 @@ jobs:
             echo "  [patch] Fix bug in saludar function"
             echo "  [minor] Add new language support"
             echo "  [major] Breaking change: refactor API"
+
+            echo "**Status:** ❌ Invalid" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Current title:** \`$PR_TITLE\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Error:** Title must start with \`[patch]\`, \`[minor]\`, or \`[major]\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Examples:**" >> $GITHUB_STEP_SUMMARY
+            echo "- \`[patch] Fix bug in saludar function\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`[minor] Add new language support\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`[major] Breaking change: refactor API\`" >> $GITHUB_STEP_SUMMARY
+
             exit 1
           fi
+
           echo "✅ PR title format is valid: $PR_TITLE"
+
+          # Extract version type
+          VERSION_TYPE=$(echo "$PR_TITLE" | grep -oP '^\[\K(patch|minor|major)(?=\])')
+
+          echo "**Status:** ✅ Valid" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Title:** \`$PR_TITLE\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Bump:** \`$VERSION_TYPE\`" >> $GITHUB_STEP_SUMMARY
 
   lint:
     name: Lint Code
@@ -48,7 +74,27 @@ jobs:
 
       - name: Run ruff
         run: |
-          ruff check src/ tests/
+          echo "## 🔍 Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Run ruff and capture exit code
+          set +e
+          ruff check src/ tests/ --output-format=full > ruff_output.txt 2>&1
+          RUFF_EXIT_CODE=$?
+          set -e
+
+          if [ $RUFF_EXIT_CODE -eq 0 ]; then
+            echo "**Status:** ✅ No linting issues found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All Python files passed linting checks with ruff." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ❌ Linting issues found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat ruff_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
 
   test:
     name: Run Tests
@@ -71,11 +117,63 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=alpyro_saludador --cov-report=term-missing --cov-report=xml
+          pytest --cov=alpyro_saludador --cov-report=term-missing --cov-report=xml -v --tb=short > pytest_output.txt 2>&1 || true
+          cat pytest_output.txt
 
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+      - name: Generate test and coverage summary
         if: always()
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+        run: |
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Extraer estadísticas de tests
+          PASSED=$(grep -oP '\d+(?= passed)' pytest_output.txt || echo "0")
+          FAILED=$(grep -oP '\d+(?= failed)' pytest_output.txt || echo "0")
+          TOTAL=$((PASSED + FAILED))
+
+          if [ "$FAILED" -eq 0 ]; then
+            echo "**Status:** ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ❌ Some tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Tests:** $TOTAL" >> $GITHUB_STEP_SUMMARY
+          echo "**Passed:** ✅ $PASSED" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "**Failed:** ❌ $FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Coverage report
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f coverage.xml ]; then
+            # Extraer el porcentaje de cobertura del XML
+            COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(f\"{float(root.attrib['line-rate']) * 100:.2f}\")" 2>/dev/null || echo "N/A")
+
+            if [ "$COVERAGE" != "N/A" ]; then
+              echo "**Total Coverage:** ${COVERAGE}% ✅" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "**Total Coverage:** Could not be calculated" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Detailed Coverage by File" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep -A 100 "^Name" pytest_output.txt | head -20 >> $GITHUB_STEP_SUMMARY || echo "Coverage details not available" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Coverage report not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Fail if tests failed
+          if [ "$FAILED" -gt 0 ]; then
+            exit 1
+          fi
