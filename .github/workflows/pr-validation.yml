@@ -77,7 +77,13 @@ jobs:
           echo "## 🔍 Lint Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if ruff check src/ tests/ --output-format=text > ruff_output.txt 2>&1; then
+          # Run ruff and capture exit code
+          set +e
+          ruff check src/ tests/ --output-format=text > ruff_output.txt 2>&1
+          RUFF_EXIT_CODE=$?
+          set -e
+
+          if [ $RUFF_EXIT_CODE -eq 0 ]; then
             echo "**Status:** ✅ No linting issues found" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "All Python files passed linting checks with ruff." >> $GITHUB_STEP_SUMMARY
