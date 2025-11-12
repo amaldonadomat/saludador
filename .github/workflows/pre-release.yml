@@ -31,16 +31,20 @@ jobs:
       - name: Get version info
         id: version_info
         run: |
-          # setuptools-scm genera automáticamente la versión .dev
+          # setuptools-scm genera automáticamente la versión .post (post-release)
           pip install setuptools-scm
           VERSION=$(python -c "from setuptools_scm import get_version; print(get_version())")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "✅ Pre-release version: $VERSION"
 
-          # Verificar que sea una versión .dev
-          if [[ ! "$VERSION" =~ \.dev ]]; then
-            echo "⚠️  Warning: Not on a development commit. Version is: $VERSION"
-            echo "This should be run from a commit without a tag to generate .dev version"
+          # Verificar que sea una versión post-release
+          if [[ "$VERSION" =~ \.post[0-9]+ ]]; then
+            echo "✅ Post-release version detected"
+          elif [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "⚠️  Warning: This is a tagged release version: $VERSION"
+            echo "Pre-release workflow should be run from commits without tags"
+          else
+            echo "ℹ️  Version format: $VERSION"
           fi
 
       - name: Build package
