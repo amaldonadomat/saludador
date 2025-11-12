@@ -23,6 +23,7 @@ Ejemplos de uso:
   saludar Pedro --idioma fr --incluir-hora
   saludar Luigi --idioma it
   saludar João --idioma pt
+  saludar Anna --idioma pl
   saludar --stats "Hola Mundo"
         """
     )
@@ -36,9 +37,9 @@ Ejemplos de uso:
 
     parser.add_argument(
         "-i", "--idioma",
-        choices=["es", "en", "fr", "it", "pt"],
+        choices=["es", "en", "fr", "it", "pt", "pl"],
         default="es",
-        help="Idioma del saludo (es, en, fr, it, pt)"
+        help="Idioma del saludo (es, en, fr, it, pt, pl)"
     )
 
     parser.add_argument(
