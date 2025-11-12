@@ -87,4 +87,4 @@ write_to = "src/alpyro_saludador/_version.py"
 # Esquema para versiones .dev posteriores al último release
 version_scheme = "post-release"
 # No incluir identificadores locales en versiones publicadas
-local_scheme = "no-local-version"
+local_scheme = "node-and-date"
