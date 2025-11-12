@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '.github/**'
+      - '*.md'
+      - '.gitignore'
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
   release:
@@ -16,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Necesario para setuptools-scm y para obtener tags
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
