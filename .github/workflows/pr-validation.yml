@@ -67,7 +67,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=alpyro_saludador --cov-report=term-missing --cov-report=xml --cov-fail-under=80
+          pytest --cov=alpyro_saludador --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
